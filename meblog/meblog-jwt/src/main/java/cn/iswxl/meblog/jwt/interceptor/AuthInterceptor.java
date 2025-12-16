@@ -1,6 +1,7 @@
 package cn.iswxl.meblog.jwt.interceptor;
 
 import cn.iswxl.meblog.common.context.UserContext;
+import cn.iswxl.meblog.common.domain.mapper.UserMapper;
 import cn.iswxl.meblog.common.enums.ResponseCodeEnum;
 import cn.iswxl.meblog.common.exception.BizException;
 import cn.iswxl.meblog.jwt.utils.JwtTokenHelper;
@@ -21,6 +22,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Autowired
     private JwtTokenHelper jwtTokenHelper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Value("${jwt.tokenHeaderKey:Authorization}")
     private String tokenHeaderKey;
@@ -51,13 +54,11 @@ public class AuthInterceptor implements HandlerInterceptor {
             jwtTokenHelper.validateToken(token);
 
             // 3. 解析用户信息
-            String username = jwtTokenHelper.getUsernameByToken(token);
-            // 假设你可以在 Token 中放入 userId，或者通过 username 去 Redis/DB 查 userId
-            // 为了性能，建议在生成 Token 时把 userId 放入 Claims，这里直接解析
              String userName = jwtTokenHelper.getUsernameByToken(token);
 
             // 4. 设置上下文
             UserContext.setUsername(userName);
+            UserContext.setUserId(userMapper.findByUsername(userName).getId());
 
         } catch (Exception e) {
             log.error("Token 认证失败", e);

@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * 权限校验注解
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD,ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequiresPermission {
     /**

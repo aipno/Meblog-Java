@@ -9,6 +9,7 @@ import cn.iswxl.meblog.jwt.annotation.RequiresPermission;
 import cn.iswxl.meblog.jwt.annotation.RequiresRoles;
 import cn.iswxl.meblog.jwt.service.PermissionService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -18,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Aspect
@@ -48,28 +51,47 @@ public class PermissionAspect {
     /**
      * 权限验证通知
      */
-    @Around("permissionPointcut()")
+    @Around("@annotation(cn.iswxl.meblog.jwt.annotation.RequiresPermission)") // 简化 Pointcut 写法
     public Object checkPermission(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
+        Class<?> targetClass = joinPoint.getTarget().getClass();
 
-        RequiresPermission requiresPermission = method.getAnnotation(RequiresPermission.class);
-        if (requiresPermission != null) {
-            // 获取当前用户
-            Long userId = UserContext.getUserId();
+        // 1. 获取用户信息 (使用我们自定义的 Context)
+        Long userId = UserContext.getUserId();
+        if (userId == null) {
+            throw new BizException(ResponseCodeEnum.UNAUTHORIZED);
+        }
 
-            if (userId == null) {
-                throw new BizException(ResponseCodeEnum.UNAUTHORIZED);
+        // 2. 解析权限
+        RequiresPermission methodAnno = method.getAnnotation(RequiresPermission.class);
+        RequiresPermission classAnno = targetClass.getAnnotation(RequiresPermission.class);
+
+        // 获取类级别的基础权限 (例如 "admin:article")
+        String basePerm = (classAnno != null && classAnno.value().length > 0)
+                ? classAnno.value()[0] : "";
+
+        // 组合最终权限列表
+        List<String> finalPermissions = new ArrayList<>();
+        if (methodAnno != null) {
+            for (String p : methodAnno.value()) {
+                // 如果方法权限包含冒号(如 "root:admin")，视为绝对路径，不拼接
+                // 否则拼接：basePerm + ":" + p
+                if (p.contains(":") || StringUtils.isBlank(basePerm)) {
+                    finalPermissions.add(p);
+                } else {
+                    finalPermissions.add(basePerm + ":" + p);
+                }
             }
+        }
 
-            // 权限验证
-            String[] permissions = requiresPermission.value();
-            LogicalEnum logical = requiresPermission.logical();
+        // 3. 执行校验
+        // 注意：这里需要把 logical 参数也传进去，通常以方法上的定义为准
+        LogicalEnum logical = (methodAnno != null) ? methodAnno.logical() : LogicalEnum.AND;
 
-            boolean hasPermission = checkPermissions(userId, permissions, logical);
-            if (!hasPermission) {
-                throw new BizException(ResponseCodeEnum.FORBIDDEN);
-            }
+        boolean hasPermission = checkPermissions(userId, finalPermissions.toArray(new String[0]), logical);
+        if (!hasPermission) {
+            throw new BizException(ResponseCodeEnum.FORBIDDEN);
         }
 
         return joinPoint.proceed();

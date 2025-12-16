@@ -5,6 +5,7 @@ import cn.iswxl.meblog.admin.service.AdminArticleService;
 import cn.iswxl.meblog.common.annotation.ApiOperationLog;
 import cn.iswxl.meblog.common.utils.Response;
 import cn.iswxl.meblog.jwt.annotation.RequiresPermission;
+import cn.iswxl.meblog.jwt.constant.PermissionConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/admin/article")
 @Tag(name = "Admin 文章模块")
+@RequiresPermission(PermissionConstants.Article.BASE)
 public class AdminArticleController {
 
     @Autowired
@@ -25,7 +27,7 @@ public class AdminArticleController {
     @PostMapping("/publish")
     @Operation(description = "文章发布")
     @ApiOperationLog(description = "文章发布")
-    @RequiresPermission(value = {"admin:article:publish"})
+    @RequiresPermission(PermissionConstants.Article.PUBLISH)
     public Response publishArticle(@RequestBody @Validated PublishArticleReqVO publishArticleReqVO) {
         return articleService.publishArticle(publishArticleReqVO);
     }
