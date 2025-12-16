@@ -101,19 +101,18 @@ public class TagServiceImpl implements TagService {
 
         // 根据文章 ID 集合查询文章分页数据（在数据库层面过滤掉未发布和非普通类型的文章）
         Page<ArticleDO> page = articleMapper.selectPageListByArticleIds(current, size, articleIds, 1, 1); // type=1表示普通文章，isPublish=1表示已发布
-        List<ArticleDO> articleDOS = page.getRecords();
+        List<ArticleDO> finalArticleDOS = page.getRecords();
 
         // DO 转 VO
         List<FindTagArticlePageListRspVO> vos = null;
-        if (!CollectionUtils.isEmpty(articleDOS)) {
-            vos = articleDOS.stream()
+        if (!CollectionUtils.isEmpty(finalArticleDOS)) {
+            vos = finalArticleDOS.stream()
                     .map(ArticleConvert.INSTANCE::convertDO2TagArticleVO)
                     .collect(Collectors.toList());
         }
 
         // 设置文章封面图片
         List<FindTagArticlePageListRspVO> finalVos = vos;
-        List<ArticleDO> finalArticleDOS = articleDOS;
         vos.forEach(vo -> {
             // 通过文章ID找到对应的文章DO对象
             Optional<ArticleDO> articleOptional = finalArticleDOS.stream()

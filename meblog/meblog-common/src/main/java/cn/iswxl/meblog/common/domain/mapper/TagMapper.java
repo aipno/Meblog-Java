@@ -1,6 +1,7 @@
 package cn.iswxl.meblog.common.domain.mapper;
 
 import cn.iswxl.meblog.common.domain.dos.TagDO;
+import cn.iswxl.meblog.common.utils.Response;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -79,5 +80,11 @@ public interface TagMapper extends BaseMapper<TagDO> {
         );
     }
 
+    /**
+     * 查询所有标签
+     */
+    default List<TagDO> selectAllTag() {
+        return selectList(null);
+    };
 }
 

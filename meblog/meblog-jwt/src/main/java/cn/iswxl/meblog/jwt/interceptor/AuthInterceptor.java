@@ -42,13 +42,12 @@ public class AuthInterceptor implements HandlerInterceptor {
         String header = request.getHeader(tokenHeaderKey);
         if (StringUtils.isBlank(header) || !header.startsWith(tokenPrefix)) {
             // 这里可以根据是否是“强制登录”接口决定是否抛异常
-            // 简单做法：只要配置了拦截路径，就必须有 Token，否则由全局异常处理器捕获返回 401
             throw new BizException(ResponseCodeEnum.UNAUTHORIZED);
         }
 
         String token = header.substring(tokenPrefix.length());
 
-        // 2. 校验 Token (复用你现有的 JwtTokenHelper)
+        // 2. 校验 Token (复用现有的 JwtTokenHelper)
         try {
             // validateToken 内部抛出异常说明 Token 无效
             jwtTokenHelper.validateToken(token);

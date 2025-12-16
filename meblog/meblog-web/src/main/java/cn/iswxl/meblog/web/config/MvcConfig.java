@@ -15,14 +15,9 @@ public class MvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
-                .addPathPatterns("/**") // 默认拦截所有
+                .addPathPatterns("/admin/**") // 默认拦截所有
                 .excludePathPatterns(
-                        "/login",
-                        "/register",
-                        "/doc.html",
-                        "/webjars/**",
-                        "/swagger-resources/**",
-                        "/v3/api-docs/**"
+                        "/login"
                 ); // 排除公开接口
     }
 }

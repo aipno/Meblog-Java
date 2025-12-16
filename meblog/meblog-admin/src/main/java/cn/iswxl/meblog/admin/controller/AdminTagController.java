@@ -38,6 +38,13 @@ public class AdminTagController {
         return tagService.findTagPageList(findTagPageListReqVO);
     }
 
+    @PostMapping("/all")
+    @Operation(description = "查询所有标签")
+    @ApiOperationLog(description = "查询所有标签")
+    public Response findTagAll() {
+        return tagService.findAllTag();
+    }
+
     @PostMapping("/update")
     @Operation(description = "更新标签")
     @ApiOperationLog(description = "更新标签")

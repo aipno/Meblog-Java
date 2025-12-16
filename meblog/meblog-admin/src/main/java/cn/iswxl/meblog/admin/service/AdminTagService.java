@@ -32,6 +32,11 @@ public interface AdminTagService {
     Response findTagSelectList();
 
     /**
+     * 查询所有标签
+     */
+    Response findAllTag();
+
+    /**
      * 更新标签
      */
     Response updateTag(UpdateTagReqVO updateTagReqVO);
